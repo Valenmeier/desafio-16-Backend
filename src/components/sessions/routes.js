@@ -94,7 +94,7 @@ router.get("/current", authToken, async (req, res) => {
 
 //Todo --> Actualizar usuarios
 
-router.get("/updatePassword", async (req, res) => {
+router.post("/updatePassword", async (req, res) => {
   let { email } = req.body;
   if (email) {
     const token = generatePasswordToken(email);
@@ -104,34 +104,37 @@ router.get("/updatePassword", async (req, res) => {
       subject: "Restablecimiento de contraseña",
       html: `
               <div>
-                  <h2>Para restablecer su contraseña <a href="${process.env.DOMAIN_NAME}/api/sessions/changePassword/${token}" target="_blank">Clik aqui</a></h2>
+                  <h2>Para restablecer su contraseña <a href="${process.env.FRONT_DOMAIN}/changePassword/${token}" target="_blank">Clik aqui</a></h2>
               </div>
           `,
       attachments: [],
     });
-    return res
-      .status(200)
-      .send(
-        `Se ha enviado un correo a ${email} para restablecer la contraseña`
-      );
+    return res.status(200).send({
+      message: `Se ha enviado un correo a ${email} para restablecer la contraseña`,
+      status: 200,
+    });
   } else {
-    return res
-      .status(400)
-      .send("Porfavor envia el correo electronico en el body");
+    return res.status(400).send({
+      message: "Porfavor envia el correo electronico",
+      status: 400,
+    });
   }
 });
 
-router.get("/changePassword/:token", authPasswordToken, async (req, res) => {
+router.post("/changePassword/:token", authPasswordToken, async (req, res) => {
   let { contraseña } = req.body;
   if (contraseña) {
     let user = await userController.searchUser(req.user.response);
     if (!user) {
-      return res.status(400).send(`Usuario no encontrado`);
+      return res
+        .status(400)
+        .send({ status: 400, response: `Usuario no encontrado` });
     }
     if (isValidPassword(user, contraseña)) {
-      return res
-        .status(422)
-        .send(`Coloca una contraseña diferente a la actual`);
+      return res.status(422).send({
+        status: 422,
+        response: `Coloca una contraseña diferente a la actual`,
+      });
     } else {
       let hashPassword = createHash(contraseña);
       let result = await userController.updateUser(user.email, {
@@ -140,11 +143,9 @@ router.get("/changePassword/:token", authPasswordToken, async (req, res) => {
       return res.status(result.status).send(result);
     }
   }
-  return res
-    .status(422)
-    .send(
-      `Coloca la nueva contraseña en el body como {"contraseña":"nueva contraseña"} y reenvia la petición`
-    );
+  return res.status(422).send({
+    response: `Coloca la nueva contraseña en el body como {"contraseña":"nueva contraseña"} y reenvia la petición`,
+  });
 });
 
 router.put("/premium", authorization("admin"), async (req, res) => {

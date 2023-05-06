@@ -52,11 +52,12 @@ export const authPasswordToken = async (req, res, next) => {
   } catch (error) {
     email = {
       status: 403,
-      response: "Not authorized",
+      response:
+        "Su token de cambio de contraseña expiró, envie otro mail nuevamente",
     };
   }
   if (email.status == 403) {
-    return res.status(email.status).send(email.response);
+    return res.status(email.status).send({ response: email.response });
   } else {
     req.user = email;
     next();
