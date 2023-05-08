@@ -2,9 +2,11 @@ import { Router } from "express";
 import { authToken } from "../../middlewares/authMiddlewares.js";
 import dotenv from "dotenv";
 import upload from "../../middlewares/fileMiddleware.js";
+import { UserController } from "../sessions/userController.js";
 dotenv.config();
 
 const router = Router();
+let userController = new UserController();
 
 router.put("/premium/:uid", authToken, async (req, res) => {
   let { uid } = req.params;
@@ -83,10 +85,9 @@ router.post(
         });
       }
 
-      await userModel.addDocuments(uid, documents);
-      res.status(200).send("Documentos agregados correctamente.");
+      await userController.addDocument(uid, documents);
     } else {
-      res.status(400).send("No tienes permiso para actualizar este usuario.");
+      res.status(400).json("No tienes permiso para actualizar este usuario.");
     }
   }
 );

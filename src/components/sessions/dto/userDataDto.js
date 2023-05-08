@@ -6,5 +6,6 @@ export class DataUserDTO {
       (this.cart = data.cart),
       (this.online = data.online),
       (this.lastConnection = data.last_connection);
+    this.userId = data._id;
   }
 }

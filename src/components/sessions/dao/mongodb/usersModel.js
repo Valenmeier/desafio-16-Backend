@@ -14,7 +14,7 @@ export class UsersModel {
     let cartController = new CartController();
     let cart = await cartController.createCart();
     user.cart = cart._id;
-    user.documents = []; 
+    user.documents = [];
     user.last_connection = new Date();
     return await this.db.create(user);
   };
@@ -46,6 +46,31 @@ export class UsersModel {
       return {
         status: 400,
         response: "El id del producto no existe",
+      };
+    }
+  };
+  addDocument = async (uid, document) => {
+    let user = await userModel.find({ _id: uid });
+    if (user.length > 0) {
+      if (document) {
+        await this.db.updateOne(
+          { _id: uid },
+          { $push: { documents: document } }
+        );
+        return {
+          status: 200,
+          response: "Documento cargado correctamente",
+        };
+      } else {
+        return {
+          status: 400,
+          response: "Coloca un documento valido a cambiar",
+        };
+      }
+    } else {
+      return {
+        status: 400,
+        response: "El id es incorrecto",
       };
     }
   };

@@ -19,4 +19,7 @@ export class UsersServices {
   searchUserByCartId = (id) => {
     return this.userModel.searchUserByCartId(id);
   };
+  addDocument = (uid, documents) => {
+    return this.userModel.addDocument(uid, documents);
+  };
 }
