@@ -60,7 +60,6 @@ router.post(
   ]),
   async (req, res) => {
     const { uid } = req.params;
-
     if (req.user._id == uid) {
       const documents = [];
 
@@ -86,6 +85,7 @@ router.post(
       }
 
       await userController.addDocument(uid, documents);
+      res.status(200).json("Archivo subido correctamente");
     } else {
       res.status(400).json("No tienes permiso para actualizar este usuario.");
     }

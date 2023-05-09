@@ -36,6 +36,7 @@ router.post(
       last_connection: new Date(),
       online: true,
     });
+   
     return res.status(200).send({
       status: 200,
       message:
@@ -170,6 +171,5 @@ router.put("/premium", authorization("admin"), async (req, res) => {
     response: "Los administradores no pueden cambiar su rol",
   });
 });
-
 
 export default router;

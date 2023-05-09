@@ -17,6 +17,7 @@ import MongoConnection from "./mongoSingleton.js";
 import { socketServer } from "./config/socket.js";
 import { addLogger } from "./services/logger/logger.js";
 import swaggerConfig from "./services/swagger/swaggerConfig.js";
+import path from "path";
 
 dotenv.config();
 const app = express();
@@ -34,6 +35,7 @@ app.use(cookieParser("valen"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(_dirname + `/public`));
+app.use(express.static(_dirname + `/upload`));
 app.use(
   cors({
     origin: process.env.FRONT_DOMAIN,
