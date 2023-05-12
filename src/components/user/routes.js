@@ -11,7 +11,7 @@ let userController = new UserController();
 router.put("/premium/:uid", authToken, async (req, res) => {
   let { uid } = req.params;
   if (req.user._id == uid) {
-    const user = await userModel.searchUserById(uid);
+    const user = await userController.searchUserById(uid);
     const requiredDocs = [
       "Identificación",
       "Comprobante de domicilio",
@@ -23,10 +23,25 @@ router.put("/premium/:uid", authToken, async (req, res) => {
     );
 
     if (hasRequiredDocs) {
+      let email = process.env.ADMIN_PRODUCTS_AND_VERIFICATION_NAME;
+      let password = process.env.ADMIN_PRODUCTS_AND_VERIFICATION_PASSWORD;
+      let adminUser = await fetch(
+        `${process.env.DOMAIN_NAME}/api/sessions/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      ).then((res) => res.json());
       await fetch(`${process.env.DOMAIN_NAME}/api/sessions/premium`, {
         method: "PUT",
         headers: {
-          token: process.env.ADMIN_ADD_PRODUCT_TOKEN,
+          token: adminUser.response.token,
           updateUser: uid,
         },
       })

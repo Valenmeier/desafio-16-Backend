@@ -202,15 +202,33 @@ export class CartsModel {
       let nuevoStock = JSON.stringify({
         stock: buyProducts._id.stock - buyProducts.quantity,
       });
+      let email = process.env.ADMIN_PRODUCTS_AND_VERIFICATION_NAME;
+      let password = process.env.ADMIN_PRODUCTS_AND_VERIFICATION_PASSWORD;
+      let adminUser = await fetch(
+        `${process.env.DOMAIN_NAME}/api/sessions/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      ).then((res) => res.json());
 
-      await fetch(`${process.env.DOMAIN_NAME}/api/products/${buyProducts._id._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          token: process.env.ADMIN_ADD_PRODUCT_TOKEN,
-        },
-        body: nuevoStock,
-      })
+      await fetch(
+        `${process.env.DOMAIN_NAME}/api/products/${buyProducts._id._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            token: adminUser.response.token,
+          },
+          body: nuevoStock,
+        }
+      )
         .then((res) => res.json())
         .then((res) => {
           if (res.status !== 200) {
@@ -226,7 +244,9 @@ export class CartsModel {
         {
           method: "DELETE",
         }
-      ).then(res=>res.json()).then(res=>console.log(res));
+      )
+        .then((res) => res.json())
+        .then((res) => console.log(res));
     }
     let generarTicket = JSON.stringify({ amount: amount, email: user.email });
     await fetch(`${process.env.DOMAIN_NAME}/api/ticket`, {
@@ -239,7 +259,6 @@ export class CartsModel {
     })
       .then((res) => res.json())
       .then((res) => {
-   
         let fecha = res.response.purchase_datatime.split("T");
 
         transport.sendMail({
@@ -261,8 +280,8 @@ export class CartsModel {
     return {
       status: 200,
       response: {
-        status:200,
-        message:"Tu compra se ha realizado correctamente"
+        status: 200,
+        message: "Tu compra se ha realizado correctamente",
       },
     };
   };
