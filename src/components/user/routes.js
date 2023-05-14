@@ -46,22 +46,20 @@ router.put("/premium/:uid", authToken, async (req, res) => {
         },
       })
         .then((res) => res.json())
-        .then((response) =>
-          res.status(response.status).send(response.response)
-        );
+        .then((response) => res.status(response.status).send(response));
     } else {
-      return res
-        .status(400)
-        .send(
-          "No puedes actualizar a premium sin cargar los documentos requeridos: Identificación, Comprobante de domicilio y Comprobante de estado de cuenta."
-        );
+      return res.status(400).send({
+        status: 400,
+        response:
+          "No puedes actualizar a premium sin cargar los documentos requeridos: Identificación, Comprobante de domicilio y Comprobante de estado de cuenta.",
+      });
     }
   } else {
-    return res
-      .status(400)
-      .send(
-        "El uid enviado no coincide con tu token, porfavor coloca correctamente los datos"
-      );
+    return res.status(400).send({
+      status: 400,
+      response:
+        "El uid enviado no coincide con tu token, porfavor coloca correctamente los datos",
+    });
   }
 });
 
@@ -100,9 +98,16 @@ router.post(
       }
 
       await userController.addDocument(uid, documents);
-      res.status(200).json("Archivo subido correctamente");
+      res
+        .status(200)
+        .send({ status: 200, response: "Archivo subido correctamente" });
     } else {
-      res.status(400).json("No tienes permiso para actualizar este usuario.");
+      res
+        .status(400)
+        .send({
+          status: 400,
+          response: "No tienes permiso para actualizar este usuario.",
+        });
     }
   }
 );

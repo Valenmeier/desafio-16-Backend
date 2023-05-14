@@ -86,7 +86,8 @@ router.get("/failregister", (req, res) => {
 });
 
 router.get("/current", authToken, async (req, res) => {
-  let returnUser = new DataUserDTO(req.user);
+  let updateUser=await userController.searchUserById(req.user)
+  let returnUser = new DataUserDTO(updateUser);
   let user = await userController.searchUserById(returnUser.userId);
   let actualDocuments = user.documents;
   let docStatus = {
