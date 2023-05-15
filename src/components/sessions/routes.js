@@ -86,7 +86,8 @@ router.get("/failregister", (req, res) => {
 });
 
 router.get("/current", authToken, async (req, res) => {
-  let updateUser=await userController.searchUserById(req.user)
+  let updateUser = await userController.searchUserById(req.user);
+
   let returnUser = new DataUserDTO(updateUser);
   let user = await userController.searchUserById(returnUser.userId);
   let actualDocuments = user.documents;
@@ -101,6 +102,11 @@ router.get("/current", authToken, async (req, res) => {
       docStatus.comprobanteDomicilio = true;
     if (doc.name == "Comprobante de estado de cuenta")
       docStatus.estadoCuenta = true;
+    if (doc.name == "Profile image") {
+      returnUser.profileImage = doc.reference;
+    } else {
+      returnUser.profileImage = null;
+    }
   }
   returnUser.documentsStatus = docStatus;
   res.status(200).send({
@@ -167,7 +173,7 @@ router.post("/changePassword/:token", authPasswordToken, async (req, res) => {
 
 router.put("/premium", authorization("admin"), async (req, res) => {
   let user = await userController.searchUserById(req.headers.updateuser);
-  
+
   if (!user) {
     return res.status(400).send({
       status: 400,

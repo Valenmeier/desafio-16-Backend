@@ -70,6 +70,7 @@ router.post(
     { name: "identificacion", maxCount: 1 },
     { name: "comprobante_domicilio", maxCount: 1 },
     { name: "estado_cuenta", maxCount: 1 },
+    { name: "profile_image", maxCount: 1 },
   ]),
   async (req, res) => {
     const { uid } = req.params;
@@ -96,18 +97,22 @@ router.post(
           reference: req.files.estado_cuenta[0].path,
         });
       }
+      if (req.files.profile_image) {
+        documents.push({
+          name: "Profile image",
+          reference: req.files.profile_image[0].path,
+        });
+      }
 
       await userController.addDocument(uid, documents);
       res
         .status(200)
         .send({ status: 200, response: "Archivo subido correctamente" });
     } else {
-      res
-        .status(400)
-        .send({
-          status: 400,
-          response: "No tienes permiso para actualizar este usuario.",
-        });
+      res.status(400).send({
+        status: 400,
+        response: "No tienes permiso para actualizar este usuario.",
+      });
     }
   }
 );

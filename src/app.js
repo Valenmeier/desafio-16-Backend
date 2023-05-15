@@ -17,7 +17,6 @@ import MongoConnection from "./mongoSingleton.js";
 import { socketServer } from "./config/socket.js";
 import { addLogger } from "./services/logger/logger.js";
 import swaggerConfig from "./services/swagger/swaggerConfig.js";
-import path from "path";
 
 dotenv.config();
 const app = express();
@@ -27,6 +26,12 @@ initializePassport();
 
 MongoConnection.getInstance();
 
+app.use(
+  cors({
+    origin: process.env.FRONT_DOMAIN,
+    credentials: true,
+  })
+);
 app.use(addLogger);
 app.use(session(MongoInstance));
 app.use(passport.initialize());
@@ -35,16 +40,11 @@ app.use(cookieParser("valen"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(_dirname + `/public`));
-app.use(express.static(_dirname + `/upload`));
 app.use(
-  cors({
-    origin: process.env.FRONT_DOMAIN,
-    credentials: true,
-  })
+  "/profileImages",
+  express.static(_dirname + "/.." + `/uploads/profiles`)
 );
-
 socketServer(app);
-
 app.engine(`handlebars`, handlebars.engine());
 app.set(`views`, "src/client/views");
 app.set(`partials`, "src/client/partials");

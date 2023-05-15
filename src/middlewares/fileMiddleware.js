@@ -15,9 +15,7 @@ const storage = multer.diskStorage({
           _dirname,
           "..",
           "uploads",
-          "users",
-          userId,
-          "profiles"
+          "profiles",
         );
         break;
       case "product_image":
