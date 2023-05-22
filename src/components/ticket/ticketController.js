@@ -4,14 +4,16 @@ export class TicketController {
   constructor() {
     this.ticketService = new TicketServices();
   }
-  createTicket = (req) => {
-    let { email, amount } = req;
+  createTicket = (data) => {
+    let { email, amount } = data;
+
     if (email && amount) {
       let data = {
         purchaser: email,
         amount,
         code: new Date().valueOf() + Math.random() * 10000,
-        purchase_datatime: new Date().toLocaleString(),
+        // Aquí convierto la cadena de texto a un objeto Date
+        purchase_datatime: new Date(),
       };
       return this.ticketService.createTicket(data);
     } else {
@@ -21,6 +23,7 @@ export class TicketController {
       };
     }
   };
+
   searchTicket = (ticket) => {
     return this.ticketService.searchTicket(ticket);
   };

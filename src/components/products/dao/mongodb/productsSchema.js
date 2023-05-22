@@ -5,7 +5,10 @@ export const productsSchema = new mongoose.Schema({
   description: String,
   code: Number,
   price: Number,
-  status: Boolean,
+  status: {
+    type: Boolean,
+    default: true,
+  },
   stock: Number,
   thumbnail: String,
   owner: String,

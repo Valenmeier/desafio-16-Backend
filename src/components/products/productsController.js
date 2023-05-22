@@ -31,6 +31,10 @@ export class ProductsController {
     let idActualizar = req.params.pid;
     if (mongoose.Types.ObjectId.isValid(idActualizar)) {
       let nuevaInformacion = req.body;
+
+      if (nuevaInformacion.stock == 0) {
+        nuevaInformacion = { stock: 0, status: false };
+      }
       return this.productsServices.updateProducts(
         idActualizar,
         nuevaInformacion
@@ -42,6 +46,7 @@ export class ProductsController {
       };
     }
   };
+
   deleteProducts = async (req) => {
     let idEliminar = req.params.pid;
     if (mongoose.Types.ObjectId.isValid(idEliminar)) {
@@ -63,5 +68,8 @@ export class ProductsController {
         response: "Coloca un id valido",
       };
     }
+  };
+  getProductWithOwner = async (owner) => {
+    return this.productsServices.getProductWithOwner(owner);
   };
 }

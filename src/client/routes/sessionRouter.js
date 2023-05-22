@@ -15,7 +15,7 @@ router.get(`/login`, (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  await fetch("http://localhost:8080/api/sessions/login", {
+  await fetch(`${process.env.DOMAIN_NAME}/api/sessions/login`, {
     method: "POST",
     body: JSON.stringify(req.body),
     headers: {
@@ -46,7 +46,7 @@ router.get(`/register`, (req, res) => {
 });
 
 router.post("/createUser", async (req, res) => {
-  await fetch("http://localhost:8080/api/sessions/createUser", {
+  await fetch(`${process.env.DOMAIN_NAME}/api/sessions/createUser`, {
     method: "POST",
     body: JSON.stringify(req.body),
     headers: {
@@ -107,7 +107,7 @@ router.get("/logout", async (req, res) => {
 
 router.get("/current", async (req, res) => {
   let token = await extractCookie(req);
-  await fetch("http://localhost:8080/api/sessions/current", {
+  await fetch(`${process.env.DOMAIN_NAME}/api/sessions/current`, {
     headers: {
       "Content-Type": "application/json",
       token: token,

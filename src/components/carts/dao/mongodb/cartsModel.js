@@ -4,6 +4,7 @@ import { transport } from "../../../../services/email/nodemailer.js";
 const cartsCollection = "carts";
 import dotenv from "dotenv";
 dotenv.config();
+
 let model = mongoose.model(cartsCollection, cartsSchema);
 
 export class CartsModel {
@@ -80,7 +81,7 @@ export class CartsModel {
         status: 200,
         payload: {
           result: "success",
-          response: { status: "Agregado correctamente" },
+          response: { status: 200, response: "Agregado correctamente" },
         },
       };
     }
@@ -92,7 +93,7 @@ export class CartsModel {
       status: 200,
       payload: {
         result: "success",
-        response: { status: "Actualizado Correctamente" },
+        response: { status: 200, response: "Actualizado Correctamente" },
       },
     };
   };
@@ -110,7 +111,7 @@ export class CartsModel {
         status: 200,
         payload: {
           result: "success",
-          response: { status: "Eliminado correctamente" },
+          response: { status: 200, response: "Eliminado correctamente" },
         },
       };
     }
@@ -118,7 +119,7 @@ export class CartsModel {
       status: 200,
       payload: {
         result: "success",
-        response: { status: "Eliminado correctamente" },
+        response: { status: 200, response: "Eliminado correctamente" },
       },
     };
   };
@@ -167,43 +168,72 @@ export class CartsModel {
     return {
       status: 200,
       payload: {
-        result: `Productos eliminados correctamente`,
+        result: { status: 200, response: `Productos eliminados correctamente` },
       },
     };
   };
   buyProducts = async (user) => {
-    //* LLAMAMOS AL CARRITO
-    let cart = await fetch(`${process.env.DOMAIN_NAME}/api/carts/${user.cart}`)
+    let cart = await fetch(
+      `${process.env.DOMAIN_NAME}/api/carts/${user.cart}`,
+      {
+        headers: {
+          token: user.token,
+        },
+      }
+    )
       .then((res) => res.json())
-      .then((data) => data[0]);
-    //* Verificamos si tiene productos
+      .then((data) => {
+        return data[0];
+      });
+
     if (cart.products.length == 0) {
       return {
         status: 405,
         response:
-          "Esta acción no esta permitida debido a que su carrito se encuentra vacio",
+          "Esta acción no está permitida debido a que su carrito se encuentra vacío",
       };
     }
+
     let failedProducts = [];
     let buyContinueProducts = [];
-    //*EN CASO DE TENER corroboramos stock
+
     for (let products of cart.products) {
       if (products._id.stock < products.quantity) {
         failedProducts.push(products);
-        continue;
       } else {
         buyContinueProducts.push(products);
       }
     }
-    //*Verificamos el monto
+
+    let purchasedProductsString = buyContinueProducts
+      .map((product) => product._id.title)
+      .join(", ");
+    let failedProductsString = failedProducts
+      .map((product) => product._id.title)
+      .join(", ");
+
+    let message = "";
+
+    if (failedProducts.length == 0) {
+      message =
+        "Todos los productos se han comprado correctamente. Revisa tu email para más información";
+    } else if (buyContinueProducts.length > 0 && failedProducts.length > 0) {
+      message = `Los productos: ${purchasedProductsString} se pudieron comprar correctamente. Los productos: ${failedProductsString} no se pudieron comprar debido a que no tienen stock. Revisa tu email para más información`;
+    } else {
+      message = `Los productos: ${failedProductsString} no se pudieron comprar debido a que no tienen stock.`;
+    }
+
     let amount = 0;
+
     for (let buyProducts of buyContinueProducts) {
       amount += buyProducts.quantity * buyProducts._id.price;
       let nuevoStock = JSON.stringify({
         stock: buyProducts._id.stock - buyProducts.quantity,
       });
+
       let email = process.env.ADMIN_PRODUCTS_AND_VERIFICATION_NAME;
       let password = process.env.ADMIN_PRODUCTS_AND_VERIFICATION_PASSWORD;
+
       let adminUser = await fetch(
         `${process.env.DOMAIN_NAME}/api/sessions/login`,
         {
@@ -232,57 +262,57 @@ export class CartsModel {
         .then((res) => res.json())
         .then((res) => {
           if (res.status !== 200) {
-            return {
-              status: res.status,
-              response:
-                "Ha ocurrido un error en el servidor: el stock no se pudo cambiar, porfavor intenta nuevamente",
-            };
+            throw new Error(
+              "Ha ocurrido un error en el servidor: el stock no se pudo cambiar, por favor intenta nuevamente"
+            );
           }
         });
+
       await fetch(
         `${process.env.DOMAIN_NAME}/api/carts/${user.cart}/products/${buyProducts._id._id}`,
         {
           method: "DELETE",
         }
-      )
-        .then((res) => res.json())
-        .then((res) => console.log(res));
+      ).then((res) => res.json());
     }
-    let generarTicket = JSON.stringify({ amount: amount, email: user.email });
-    await fetch(`${process.env.DOMAIN_NAME}/api/ticket`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        token: user.token,
-      },
-      body: generarTicket,
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        let fecha = res.response.purchase_datatime.split("T");
 
-        transport.sendMail({
-          from: process.env.MAIL_USER,
-          to: res.response.purchaser,
-          subject: "Compra en meiercomercce",
-          html: `
-                  <div>
-                      <h1>Se ha completado tu compra en meiercommerce </h1>
-                      <h3>El monto total de la misma fue de : $${res.response.amount} </h3>
-                      <h3>La compra fue realizada el dia ${fecha[0]} a las ${fecha[1]}</h3>
-                      <h3>El codigo de su compra es ${res.response.code}</h3>
-                      <h4>Gracias por confiar en nosotros, espermos su pronta vuelta 😁.</h4>
-                  </div>
-              `,
-          attachments: [],
+    let generarTicket = JSON.stringify({ amount: amount, email: user.email });
+
+    if (amount > 0) {
+      await fetch(`${process.env.DOMAIN_NAME}/api/ticket`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          token: user.token,
+        },
+        body: generarTicket,
+      })
+        .then((res) => res.json())
+        .then((res) => {
+        
+          let fecha = res.response.purchase_datatime.split("T");
+
+          transport.sendMail({
+            from: process.env.MAIL_USER,
+            to: res.response.purchaser,
+            subject: "Compra en meiercommerce",
+            html: `
+                    <div>
+                        <h1>Se ha completado tu compra en meiercommerce </h1>
+                        <h3>El monto total de la misma fue de : $${res.response.amount} </h3>
+                        <h3>La compra fue realizada el día ${fecha[0]} a las ${fecha[1]}</h3>
+                        <h3>El código de su compra es ${res.response.code}</h3>
+                        <h4>Gracias por confiar en nosotros, esperamos su pronta vuelta 😁.</h4>
+                    </div>
+                `,
+            attachments: [],
+          });
         });
-      });
+    }
+    await this.db.updateOne({ _id: user.cart }, { $set: { products: [] } });
     return {
       status: 200,
-      response: {
-        status: 200,
-        message: "Tu compra se ha realizado correctamente",
-      },
+      response: message,
     };
   };
 }

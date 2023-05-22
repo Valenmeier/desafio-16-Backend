@@ -11,12 +11,7 @@ const storage = multer.diskStorage({
 
     switch (file.fieldname) {
       case "profile_image":
-        folder = path.join(
-          _dirname,
-          "..",
-          "uploads",
-          "profiles",
-        );
+        folder = path.join(_dirname, "..", "uploads", "profiles");
         break;
       case "product_image":
         folder = path.join(
@@ -64,25 +59,18 @@ const storage = multer.diskStorage({
 
     // Comprobar si la carpeta existe y crearla si no es así
     fs.mkdirSync(folder, { recursive: true });
+
     const MIMETYPES = ["image/png", "image/webp", "image/jpeg", "image/png"];
 
     // Elimina el archivo anterior en la carpeta antes de subir uno nuevo
-    fs.readdir(folder, (err, files) => {
-      if (err) {
-     
-      } else {
-        for (const fileToDelete of files) {
-          fs.unlink(path.join(folder, fileToDelete), (err) => {
-            if (err) {
-              console.error(err);
-            } else {
-              console.log(`Remplace file: ${fileToDelete}`);
-            }
-          });
-        }
+    try {
+      const files = fs.readdirSync(folder);
+      for (const fileToDelete of files) {
+        fs.unlinkSync(path.join(folder, fileToDelete));
       }
-    });
-
+    } catch (err) {
+      console.error(err);
+    }
     if (MIMETYPES.includes(file.mimetype)) {
       cb(null, folder);
     } else {
@@ -90,9 +78,18 @@ const storage = multer.diskStorage({
     }
   },
   filename: (req, file, cb) => {
-    const fileExtension = extname(file.originalname);
-    const fileName = file.originalname.split(fileExtension)[0];
-    cb(null, `${fileName}-${Date.now()}${fileExtension}`);
+    const fileExtension = ".jpg";
+    let fileName;
+    if (file.fieldname === "profile_image") {
+      // Si es una imagen de perfil, utiliza "profile" y el ID del usuario como nombre de archivo
+      fileName = `profileImage-${req.user._id}`;
+    } else {
+      // Para otros archivos, utiliza el nombre original del archivo y la fecha actual
+      fileName = file.originalname.split(fileExtension)[0];
+      fileName = `${fileName}-${Date.now()}`;
+    }
+
+    cb(null, `${fileName}${fileExtension}`);
   },
 });
 

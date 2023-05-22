@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 import { passportCall } from "../../middlewares/authMiddlewares.js";
 import { verificarAdmin } from "../../scripts/verificarAdmin.js";
 const router = express.Router();
+import dotenv from "dotenv";
+dotenv.config();
+
 router.get(`/:cid`, passportCall("jwt"), async (req, res) => {
   let adminSession = verificarAdmin(req);
   let { activateSession, admin } = adminSession;
@@ -17,7 +20,7 @@ router.get(`/:cid`, passportCall("jwt"), async (req, res) => {
     });
   }
 
-  let carrito = await fetch(`http://localhost:8080/api/carts/${id}`)
+  let carrito = await fetch(`${process.env.DOMAIN_NAME}/api/carts/${id}`)
     .then((res) => res.json())
     .then((res) => res);
 
@@ -36,7 +39,7 @@ router.get(`/:cid`, passportCall("jwt"), async (req, res) => {
   if (!carrito[0].products) {
     for (let producto of carrito.products) {
       let buscarProducto = await fetch(
-        `http://localhost:8080/api/products/${id}`
+        `${process.env.DOMAIN_NAME}/api/products/${id}`
       )
         .then((res) => res.json())
         .then((res) => res);

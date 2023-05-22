@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 const router = express.Router();
 import { passportCall } from "../../middlewares/authMiddlewares.js";
 import { verificarAdmin } from "../../scripts/verificarAdmin.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 router.get(`/`, passportCall("jwt"), async (req, res) => {
   let adminSession = verificarAdmin(req);
@@ -10,7 +12,7 @@ router.get(`/`, passportCall("jwt"), async (req, res) => {
   let params = req.query;
   let products;
   if (params.limit || params.page || params.sort || params.query) {
-    let url = "http://localhost:8080/api/products?";
+    let url = `${process.env.DOMAIN_NAME}/api/products?`;
     for (let param in params) {
       let completParam = `${param}=${params[param]}&`;
       url += completParam;
@@ -20,7 +22,7 @@ router.get(`/`, passportCall("jwt"), async (req, res) => {
       .then((res) => res.json())
       .then((res) => res);
   } else {
-    products = await fetch(`http://localhost:8080/api/products`)
+    products = await fetch(`${process.env.DOMAIN_NAME}/api/products`)
       .then((res) => res.json())
       .then((res) => {
         return res;
@@ -65,7 +67,7 @@ router.get(`/:pid`, passportCall("jwt"), async (req, res) => {
       style: "detalles.css",
     });
   }
-  let producto = await fetch(`http://localhost:8080/api/products/${id}`)
+  let producto = await fetch(`${process.env.DOMAIN_NAME}/api/products/${id}`)
     .then((res) => res.json())
     .then((res) => res);
 

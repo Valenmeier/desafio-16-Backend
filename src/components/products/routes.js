@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { ProductsController } from "./productsController.js";
-
-import { authorization } from "../../middlewares/authMiddlewares.js";
+import { uploadProductImage } from "../../middlewares/productUploadImage.js";
+import { authToken, authorization } from "../../middlewares/authMiddlewares.js";
 
 const router = Router();
 
@@ -26,7 +26,8 @@ router.get("/", async (req, res, next) => {
 //* Subir producto
 router.post(
   "/",
-  authorization("admin","premium"),
+  authorization("admin", "premium"),
+  uploadProductImage.single("thumbnail"), // multer se encargará del archivo con el nombre 'thumbnail'
   async (req, res, next) => {
     try {
       let result = await Controller.addProduct(req);
@@ -54,36 +55,59 @@ router.get("/:pid", async (req, res, next) => {
     next(error);
   }
 });
+//* Traer Productos con un owner
+router.get("/getAllProduct/owner", authToken, async (req, res, next) => {
+  try {
+    let result = await Controller.getProductWithOwner(req.user.email);
+
+    if (result.status == 200) {
+      return res.status(200).json(result);
+    } else {
+      return res.status(400).json(result);
+    }
+  } catch (error) {
+    console.log(error)
+    next(error);
+  }
+});
 
 //*Actualizar productos
-router.put("/:pid", authorization("admin","premium"), async (req, res, next) => {
-  try {
-    let result = await Controller.updateProducts(req);
-    if (result.status == 200) {
-      return res.status(200).send({
-        status: result.status,
-        response: result.response,
-      });
-    } else {
-      return res.status(400).send(result.response);
+router.put(
+  "/:pid",
+  authorization("admin", "premium"),
+  async (req, res, next) => {
+    try {
+      let result = await Controller.updateProducts(req);
+      if (result.status == 200) {
+        return res.status(200).send({
+          status: result.status,
+          response: result.response,
+        });
+      } else {
+        return res.status(400).send(result.response);
+      }
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    next(error);
   }
-});
+);
 
 //* Eliminar productos
-router.delete("/:pid", authorization("admin","premium"), async (req, res, next) => {
-  try {
-    let result = await Controller.deleteProducts(req);
-    if (result.status == 200) {
-      return res.status(200).send(result.response);
-    } else {
-      return res.status(400).send(result.response);
+router.delete(
+  "/:pid",
+  authorization("admin", "premium"),
+  async (req, res, next) => {
+    try {
+      let result = await Controller.deleteProducts(req);
+      if (result.status == 200) {
+        return res.status(200).send(result.response);
+      } else {
+        return res.status(400).send(result.response);
+      }
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    next(error);
   }
-});
+);
 
 export default router;

@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { productsSchema } from "./productsSchema.js";
 import { actualizarPagina } from "../../../../scripts/funcionActualizaLinks.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const productsCollection = "products";
 let productsModel = mongoose.model(productsCollection, productsSchema);
@@ -149,15 +151,23 @@ export class ProductsModel {
   addProduct = async (req) => {
     let nuevoProducto = req.body;
     nuevoProducto.owner = req.owner || "admin";
+
+    // Añade la ruta del thumbnail al objeto nuevoProducto
+    if (req.file) {
+      nuevoProducto.thumbnail = `${process.env.DOMAIN_NAME}/productImages/${req.file.filename}`;
+    }
+
     let verificacionDeCode = await this.db.find({
       code: nuevoProducto.code,
     });
+
     if (verificacionDeCode.length > 0) {
       return {
         status: 400,
         response: "Error, código existente",
       };
     }
+
     const response = await this.db.insertMany(nuevoProducto);
     return {
       status: 200,
@@ -214,6 +224,20 @@ export class ProductsModel {
       return {
         status: 400,
         response: "El id del producto no existe",
+      };
+    }
+  };
+  getProductWithOwner = async (owner) => {
+    let producto = await this.db.find({ owner: owner });
+    if (producto.length > 0) {
+      return {
+        status: 200,
+        response: producto,
+      };
+    } else {
+      return {
+        status: 400,
+        response: "No subiste ningún producto.",
       };
     }
   };

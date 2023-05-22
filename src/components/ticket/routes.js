@@ -5,7 +5,7 @@ const router = express.Router();
 
 let ticketController = new TicketController();
 
-router.post("/", authToken, async (req, res) => {
+router.post("/", authToken, async (req, res, next) => {
   try {
     let data = req.body;
     let result = await ticketController.createTicket(data);

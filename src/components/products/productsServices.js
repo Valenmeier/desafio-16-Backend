@@ -24,4 +24,7 @@ export class ProductsServices {
   deleteProducts = (id) => {
     return this.productsModel.deleteProducts(id);
   };
+  getProductWithOwner = (owner) => {
+    return this.productsModel.getProductWithOwner(owner);
+  };
 }

@@ -50,23 +50,30 @@ export class UsersModel {
     }
   };
   addDocument = async (uid, document) => {
-    let user = await userModel.find({ _id: uid });
-    if (user.length > 0) {
-      if (document) {
-        await this.db.updateOne(
-          { _id: uid },
-          { $push: { documents: document } }
+    let user = await userModel.findOne({ _id: uid });
+    if (user) {
+      for (let newDoc of document) {
+        const docIndex = user.documents.findIndex(
+          (doc) => doc.name === newDoc.name
         );
-        return {
-          status: 200,
-          response: "Documento cargado correctamente",
-        };
-      } else {
-        return {
-          status: 400,
-          response: "Coloca un documento valido a cambiar",
-        };
+        if (docIndex !== -1) {
+          // Si el documento existe, actualizarlo
+          await this.db.updateOne(
+            { _id: uid, "documents.name": newDoc.name },
+            { $set: { "documents.$.reference": newDoc.reference } }
+          );
+        } else {
+          // Si el documento no existe, añadirlo
+          await this.db.updateOne(
+            { _id: uid },
+            { $push: { documents: newDoc } }
+          );
+        }
       }
+      return {
+        status: 200,
+        response: "Documento cargado correctamente",
+      };
     } else {
       return {
         status: 400,

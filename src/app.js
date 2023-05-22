@@ -44,6 +44,10 @@ app.use(
   "/profileImages",
   express.static(_dirname + "/.." + `/uploads/profiles`)
 );
+app.use(
+  "/productImages",
+  express.static(_dirname + "/.." + `/uploads/productImages`)
+);
 socketServer(app);
 app.engine(`handlebars`, handlebars.engine());
 app.set(`views`, "src/client/views");

@@ -2,9 +2,11 @@ import chai from "chai";
 import supertest from "supertest";
 import { describe, it } from "mocha";
 import { CartController } from "../cartController.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const { expect } = chai;
-const requester = supertest("http://localhost:8080");
+const requester = supertest(`${process.env.DOMAIN_NAME}`);
 
 describe("Cart API", () => {
   let cartController = new CartController();

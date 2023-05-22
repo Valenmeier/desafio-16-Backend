@@ -42,11 +42,14 @@ export class CartController {
   addProductToCart = async (req) => {
     let carritoId = await req.params.cid;
     let productoId = await req.params.pid;
+
     let verificarProducto = await confirmarProducto(productoId);
     let verificarCarrito = await confirmarCarrito(carritoId);
+
     if (verificarCarrito && verificarProducto) {
-      let cartOwner = await getOwnerCart(req);
+      let cartOwner = await getOwnerCart(carritoId);
       let productOwner = await getOwnerProduct(productoId);
+
       if (cartOwner != productOwner) {
         return this.cartService.addProduct(productoId, carritoId);
       } else {

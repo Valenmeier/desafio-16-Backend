@@ -100,7 +100,7 @@ router.post(
       if (req.files.profile_image) {
         documents.push({
           name: "Profile image",
-          reference: req.files.profile_image[0].path,
+          reference: `${process.env.DOMAIN_NAME}/profileImages/${req.files.profile_image[0].filename}`,
         });
       }
 

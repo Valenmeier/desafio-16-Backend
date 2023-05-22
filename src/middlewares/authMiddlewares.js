@@ -17,13 +17,13 @@ export const authToken = (req, res, next) => {
       status: 401,
       response: "Token not recibed",
     });
-
   jwt.verify(authToken, process.env.JWT_PRIVATE_KEY, (error, credentials) => {
-    if (error)
+    if (error) {
       return res.status(403).send({
         status: 403,
         response: "No authorized",
       });
+    }
     req.user = credentials.user;
     next();
   });
@@ -85,6 +85,7 @@ export const extractCookie = (req) =>
 export const authorization = (...roles) => {
   return async (req, res, next) => {
     let token = req.headers.token;
+
     fetch(`${process.env.DOMAIN_NAME}/api/sessions/current`, {
       headers: {
         "Content-Type": "application/json",
